@@ -28,7 +28,6 @@
 # FBA7C622	BossBussun/ActorInfo/ActionFlagCtrl.bcsv
 # D1702B64	BossBussun/ActorInfo/ActionFlagCtrl.bcsv
 # D1702A76	BossBussun/ActorInfo/ActionFlagCtrl.bcsv
-# 061F7EF4	StageSelectMenu.tbl japanese zone name?
 # E4EC2289	StageSelectMenu.tbl english zone name?
 # 1439D35C	StageSelectMenu.tbl layers?
 # 6DC3A6D2	StageSelectMenu.tbl
@@ -650,6 +649,7 @@ id
 interpole
 jp_name
 l_id
+label
 loffset
 loffsetv
 lower

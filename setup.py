@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="pyjmap",
-    version="1.0.0",
+    version="1.0.1",
     author="Aurum",
     url="https://github.com/SunakazeKun/pyjmap",
     description="Python library for Nintendo's BCSV/JMap format",
@@ -13,6 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     keywords=["nintendo", "jsystem", "jmap", "bcsv", "modding"],
     packages=setuptools.find_packages(),
+    package_data={"pyjmap": ["lookup_*.txt"]},
     python_requires=">=3.6",
     license="gpl-3.0",
     classifiers=[
