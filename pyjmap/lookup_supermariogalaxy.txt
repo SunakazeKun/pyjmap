@@ -14,7 +14,6 @@
 # 02BA7D47	ObjectData/Yoshi/ActorInfo/BackToEgg.bcsv
 # 55CFC442	Stage/jmp/Placement/Common/ChangeObjInfo
 # C4F73392	Stage/jmp/Placement/Common/ChangeObjInfo
-# 000104A8	Stage/csv/DemoKoopaJrLv1GalaxyGateOpenSound.bcsv
 # 9BA65420	fileselectscenario/scenariodata.bcsv
 # 9BA5D1A0	fileselectscenario/scenariodata.bcsv
 # DCD5B777	Battan/ActorInfo/ActionFlagCtrl.bcsv
@@ -59,6 +58,7 @@ BckStartFrame
 BeatRatio
 Bee
 BendMaxDegree
+Bgm
 BgmFadeStep
 BgmIdName
 BgmName
