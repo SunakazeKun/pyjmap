@@ -12,12 +12,9 @@
 # C6672A7E	ObjectData/Yoshi/ActorInfo/BackToEgg.bcsv
 # 6D52E4A8	ObjectData/Yoshi/ActorInfo/BackToEgg.bcsv
 # 02BA7D47	ObjectData/Yoshi/ActorInfo/BackToEgg.bcsv
-# 15ADC947	Stage/jmp/List/StageInfo
 # 55CFC442	Stage/jmp/Placement/Common/ChangeObjInfo
 # C4F73392	Stage/jmp/Placement/Common/ChangeObjInfo
 # 000104A8	Stage/csv/DemoKoopaJrLv1GalaxyGateOpenSound.bcsv
-# 50F5D5E6	stage/jmp/placement/common/cameracubeinfo
-# CDC4FEAD	stage/jmp/placement/common/cameracubeinfo
 # 9BA65420	fileselectscenario/scenariodata.bcsv
 # 9BA5D1A0	fileselectscenario/scenariodata.bcsv
 # DCD5B777	Battan/ActorInfo/ActionFlagCtrl.bcsv
@@ -248,6 +245,8 @@ IndirectFlag
 IndirectScale
 InitFunction
 Interpolate
+InterpolateIn
+InterpolateOut
 IntoBeat
 InvalidMove
 InvalidateClipping
@@ -293,6 +292,7 @@ MainPartStep
 MapPaneName
 MapParts_ID
 MarioNo
+Material
 MessageId
 Metal
 MiddleFlag
