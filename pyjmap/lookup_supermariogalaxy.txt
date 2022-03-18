@@ -28,7 +28,6 @@
 # FBA7C622	BossBussun/ActorInfo/ActionFlagCtrl.bcsv
 # D1702B64	BossBussun/ActorInfo/ActionFlagCtrl.bcsv
 # D1702A76	BossBussun/ActorInfo/ActionFlagCtrl.bcsv
-# E4EC2289	StageSelectMenu.tbl english zone name?
 # 1439D35C	StageSelectMenu.tbl layers?
 # 6DC3A6D2	StageSelectMenu.tbl
 ### General names

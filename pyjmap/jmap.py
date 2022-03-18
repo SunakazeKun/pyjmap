@@ -35,14 +35,15 @@ class JMapException(Exception):
 # ----------------------------------------------------------------------------------------------------------------------
 def calc_old_hash(field_name: str) -> int:
     """
-    The old hash function that is used in Luigi's Mansion. The resulting hash is a 32-bit value.
+    The old hash function that is used in Luigi's Mansion. The resulting hash is a 32-bit value. The field name is
+    expected to be an ASCII-string.
 
     :param field_name: the field name to be hashed.
     :returns: the 32-bit hash value.
     """
     field_hash = 0
 
-    for ch in field_name.encode("shift_jisx0213"):
+    for ch in field_name.encode("ascii"):
         ch |= ~0xFF if ch & 0x80 else 0  # Signed char
         field_hash = (((field_hash << 8) & 0xFFFFFFFF) + ch) % 33554393
 
@@ -51,15 +52,15 @@ def calc_old_hash(field_name: str) -> int:
 
 def calc_jgadget_hash(field_name: str) -> int:
     """
-    The JGadget hash function that is used in the Super Mario Galaxy games and Donkey Kong Jungle Beat.  The resulting
-    hash is a 32-bit value.
+    The JGadget hash function that is used in the Super Mario Galaxy games and Donkey Kong Jungle Beat. The resulting
+    hash is a 32-bit value. The field name is expected to be an ASCII-string.
 
     :param field_name: the field name to be hashed.
     :returns: the 32-bit hash value.
     """
     field_hash = 0
 
-    for ch in field_name.encode("shift_jisx0213"):
+    for ch in field_name.encode("ascii"):
         ch |= ~0xFF if ch & 0x80 else 0  # Signed char
         field_hash = (field_hash * 31) + ch
 
@@ -636,13 +637,14 @@ class JMapInfo:
     __copy__ = copy
     __deepcopy__ = copy
 
-    def _unpack_(self, data, off: int, is_big_endian: bool):
+    def _unpack_(self, data, off: int, is_big_endian: bool, encoding: str):
         """
         Unpacking the content from the specified buffer. The data is expected to be stored in the BCSV format.
 
         :param data: the byte buffer.
         :param off: the offset into the buffer.
         :param is_big_endian: the endianness of the data.
+        :param encoding: the encoding for strings.
         """
         # Unpack header and calculate string pool offset
         strct = self.__STRUCT_BE__ if is_big_endian else self.__STRUCT_LE__
@@ -677,7 +679,7 @@ class JMapInfo:
 
                 # Read string
                 elif field_type == JMapFieldType.STRING:
-                    val = data[off_val:off_val + 32].decode("shift_jisx0213").rstrip("\0")
+                    val = data[off_val:off_val + 32].decode(encoding).rstrip("\0")
 
                 # Read float
                 elif field_type == JMapFieldType.FLOAT:
@@ -701,18 +703,19 @@ class JMapInfo:
                     while data[end_str]:
                         end_str += 1
 
-                    val = data[off_val:end_str].decode("shift_jisx0213")
+                    val = data[off_val:end_str].decode(encoding)
 
                 entry._data_[field.hash] = val
 
             self._entries_.append(entry)
             off_tmp += self._entry_size_
 
-    def makebin(self, is_big_endian: bool) -> bytearray:
+    def makebin(self, is_big_endian: bool, encoding: str) -> bytearray:
         """
         Packs the container's contents according to the BCSV format and returns the resulting bytearray buffer.
 
         :param is_big_endian: the endianness of the data.
+        :param encoding: the encoding for strings.
         :return: the packed bytearray buffer.
         """
         # Prepare header information
@@ -760,7 +763,7 @@ class JMapInfo:
 
                 # Pack string
                 elif field_type == JMapFieldType.STRING:
-                    enc_string = val.encode("shift_jisx0213")
+                    enc_string = val.encode(encoding)
                     if len(enc_string) >= 32:
                         warnings.warn("String is too long to be embedded. String will be chopped to fit 32 bytes!")
                     len_string = min(len(enc_string), 31)  # Last byte is for null-terminator
@@ -785,7 +788,7 @@ class JMapInfo:
                     else:
                         off_string = len(buffer) - off_strings
                         string_offsets[val] = off_string
-                        buffer += (val + "\0").encode("shift_jisx0213")
+                        buffer += (val + "\0").encode(encoding)
 
                     struct.pack_into(endian + "I", buffer, off_val, off_string)
 
@@ -801,7 +804,7 @@ class JMapInfo:
 # ----------------------------------------------------------------------------------------------------------------------
 # Helper I/O functions
 # ----------------------------------------------------------------------------------------------------------------------
-def from_buffer(hashtable: JMapHashTable, buffer, offset: int, big_endian: bool = True) -> JMapInfo:
+def from_buffer(hashtable: JMapHashTable, buffer, offset: int, big_endian: bool = True, encoding: str = "shift_jisx0213") -> JMapInfo:
     """
     Creates and returns a new JMapInfo container by unpacking the content from the specified buffer. The data is
     expected to be stored in the JMap / BCSV format.
@@ -810,25 +813,27 @@ def from_buffer(hashtable: JMapHashTable, buffer, offset: int, big_endian: bool 
     :param buffer: the byte buffer.
     :param offset: the offset into the buffer.
     :param big_endian: the endianness of the data.
+    :param encoding: the encoding for strings.
     :return: the unpacked JMapInfo container.
     """
     jmap = JMapInfo(hashtable)
-    jmap._unpack_(buffer, offset, big_endian)
+    jmap._unpack_(buffer, offset, big_endian, encoding)
     return jmap
 
 
-def pack_buffer(jmap: JMapInfo, big_endian: bool = True) -> bytearray:
+def pack_buffer(jmap: JMapInfo, big_endian: bool = True, encoding: str = "shift_jisx0213") -> bytearray:
     """
     Packs the given JMapInfo's contents according to the BCSV format and returns the resulting bytearray buffer.
 
     :param jmap: the JMapInfo container.
     :param big_endian: the endianness of the data.
+    :param encoding: the encoding for strings.
     :return: the buffer containing the stored data.
     """
-    return jmap.makebin(big_endian)
+    return jmap.makebin(big_endian, encoding)
 
 
-def from_file(hashtable: JMapHashTable, file_path: str, big_endian: bool = True) -> JMapInfo:
+def from_file(hashtable: JMapHashTable, file_path: str, big_endian: bool = True, encoding: str = "shift_jisx0213") -> JMapInfo:
     """
     Creates and returns a new JMapInfo container by unpacking the contents from the given file path. The data is
     expected to be stored in the JMap / BCSV format.
@@ -836,15 +841,16 @@ def from_file(hashtable: JMapHashTable, file_path: str, big_endian: bool = True)
     :param hashtable: the hash lookup table to be used.
     :param file_path: the file path to the JMap / BCSV file.
     :param big_endian: the endianness of the data.
+    :param encoding: the encoding for strings.
     :return: the unpacked JMapInfo container.
     """
     jmap = JMapInfo(hashtable)
     with open(file_path, "rb") as f:
-        jmap._unpack_(f.read(), 0, big_endian)
+        jmap._unpack_(f.read(), 0, big_endian, encoding)
     return jmap
 
 
-def write_file(jmap: JMapInfo, file_path: str, big_endian: bool = True):
+def write_file(jmap: JMapInfo, file_path: str, big_endian: bool = True, encoding: str = "shift_jisx0213"):
     """
     Packs the given JMapInfo's contents according to the BCSV format and writes the resulting buffer's contents to the
     specified file.
@@ -852,8 +858,9 @@ def write_file(jmap: JMapInfo, file_path: str, big_endian: bool = True):
     :param jmap: the JMapInfo container.
     :param file_path: the file path to write the contents to.
     :param big_endian: the endianness of the data.
+    :param encoding: the encoding for strings.
     """
-    buffer = jmap.makebin(big_endian)
+    buffer = jmap.makebin(big_endian, encoding)
 
     with open(file_path, "wb") as f:
         f.write(buffer)
