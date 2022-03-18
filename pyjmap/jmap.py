@@ -5,6 +5,18 @@ table-like structure. Each column (JMapField) has a name and binary storage info
 entries (JMapEntry) are to be interpreted. All integral data types are interpreted as signed data due to the lack of
 information about a field's signedness. The reverse-engineered specifications of this format can be accessed on the
 Luma's Workshop wiki: https://luma.aurumsmods.com/wiki/BCSV_(File_format)
+
+
+Different games use different hash algorithms, string encodings and endianness:
+
+Game                         Hash Algorithm  Endianness  Encoding
+------------------------------------------------------------------------
+Luigi's Mansion (GameCube)   Old             big         shift_jisx0213
+Luigi's Mansion (3DS)        Old             little      utf-8(?)
+Donkey Kong Jungle Beat      New (JGadget)   big         shift_jisx0213
+Super Mario Galaxy (Wii)     New (JGadget)   big         shift_jisx0213
+Super Mario Galaxy (Switch)  New (JGadget)   little      utf-8
+Super Mario Galaxy 2         New (JGadget)   big         shift_jisx0213
 """
 
 import csv

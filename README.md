@@ -13,15 +13,15 @@ Command line operations to convert between JMap and CSV files are supported. The
 
 You can dump the contents of a BCSV/JMap file to a CSV file using:
 ```sh
-pyjmap [--little-endian] HASHTABLE -tocsv JMAP_FILE_PATH CSV_FILE_PATH
+pyjmap tocsv [-le] [-jmapenc JMAP_ENCODING] [-csvenc CSV_ENCODING] {smg,dkjb,lm} JMAP_FILE_PATH CSV_FILE_PATH
 ```
 
 Proper CSV files can be converted back to BCSV/JMap files using:
 ```sh
-pyjmap [--little-endian] HASHTABLE -tojmap CSV_FILE_PATH JMAP_FILE_PATH
+pyjmap tojmap [-le] [-jmapenc JMAP_ENCODING] [-csvenc CSV_ENCODING] {smg,dkjb,lm} CSV_FILE_PATH JMAP_FILE_PATH
 ```
 
-If ``little_endian`` is not set, the data is treated as big-endian. The hash lookup table is specified by ``HASHTABLE``. Supported values are ``smg`` for *Super Mario Galaxy*, ``lm`` for *Luigi's Mansion* and ``dkjb`` for *Donkey Kong Jungle Beat*.
+If ``le`` is set, the data is expected to be stored using little-endian byte order. ``jmapenc`` specifies the encoding of strings in the JMap data and it defaults to ``shift_jisx0213``. ``csvenc`` is the encoding of the CSV file and it uses ``utf-8`` by default. The hash lookup table is specified by ``HASHTABLE``. Supported values are ``smg`` for *Super Mario Galaxy*, ``lm`` for *Luigi's Mansion* and ``dkjb`` for *Donkey Kong Jungle Beat*.
 
 ## Library usage
 The library provides various high-level operations to deal with JMap data. Below is some example code showing the fundamentals of *pyjmap*. Look at [jmap.py](pyjmap/jmap.py) for more information about the different methods.

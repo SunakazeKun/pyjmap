@@ -1,3 +1,7 @@
+### Unknown hashes
+# 1439D35C areaobjinfo
+# 1F159BA5 bgobjinfo
+# 21E61714 bgobjinfo
 AMB_COL
 Camera_Type
 CommonPath_ID

@@ -10,16 +10,20 @@ LOOKUP_TABLES = {
 
 
 def dump(args):
-    encoding = "utf-8" if args.allstars else "shift_jisx0213"
-    data = jmap.from_file(LOOKUP_TABLES[args.lookup](), args.jmap, not args.allstars, encoding)
-    jmap.dump_csv(data, args.csv)
+    jmap_enc = args.jmap_encoding if args.jmap_encoding else "shift_jisx0213"
+    csv_enc = args.csv_encoding if args.csv_encoding else "utf-8"
+
+    data = jmap.from_file(LOOKUP_TABLES[args.lookup](), args.jmap, not args.little_endian, jmap_enc)
+    jmap.dump_csv(data, args.csv, csv_enc)
     print("Successfully dumped data to CSV file.")
 
 
 def pack(args):
-    encoding = "utf-8" if args.allstars else "shift_jisx0213"
-    data = jmap.from_csv(LOOKUP_TABLES[args.lookup](), args.csv)
-    jmap.write_file(data, args.jmap, not args.little_endian, encoding)
+    jmap_enc = args.jmap_encoding if args.jmap_encoding else "shift_jisx0213"
+    csv_enc = args.csv_encoding if args.csv_encoding else "utf-8"
+
+    data = jmap.from_csv(LOOKUP_TABLES[args.lookup](), args.csv, csv_enc)
+    jmap.write_file(data, args.jmap, not args.little_endian, jmap_enc)
     print("Successfully packed JMap data.")
 
 
@@ -32,7 +36,9 @@ def main():
     pack_parser = subs.add_parser("tojmap", description="Pack CSV file as JMap data.")
 
     for sub_parser in [dump_parser, pack_parser]:
-        sub_parser.add_argument("-3das", "--allstars", action="store_true", help="Is file from Super Mario 3D All-Stars?")
+        sub_parser.add_argument("-le", "--little_endian", action="store_true", help="Data is little-endian?")
+        sub_parser.add_argument("-jmapenc", "--jmap_encoding", help="JMap file encoding. Default is shift_jisx0213."),
+        sub_parser.add_argument("-csvenc", "--csv_encoding", help="CSV file encoding. Default is utf-8"),
         sub_parser.add_argument("lookup", choices=["smg", "dkjb", "lm"], help="The hash lookup table to use.")
 
     dump_parser.add_argument("jmap", help="Path to JMap data.")
