@@ -4,6 +4,7 @@ from . import jmap
 
 LOOKUP_TABLES = {
     "smg": jmap.SuperMarioGalaxyHashTable,
+    "sms": jmap.SuperMarioSunshineHashTable,
     "dkjb": jmap.JungleBeatHashTable,
     "lm": jmap.LuigisMansionHashTable
 }
@@ -39,7 +40,7 @@ def main():
         sub_parser.add_argument("-le", "--little_endian", action="store_true", help="Data is little-endian?")
         sub_parser.add_argument("-jmapenc", "--jmap_encoding", help="JMap file encoding. Default is shift_jisx0213."),
         sub_parser.add_argument("-csvenc", "--csv_encoding", help="CSV file encoding. Default is utf-8"),
-        sub_parser.add_argument("lookup", choices=["smg", "dkjb", "lm"], help="The hash lookup table to use.")
+        sub_parser.add_argument("lookup", choices=["smg", "dkjb", "sms", "lm"], help="The hash lookup table to use.")
 
     dump_parser.add_argument("jmap", help="Path to JMap data.")
     dump_parser.add_argument("csv", help="Path to CSV file.")

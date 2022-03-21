@@ -21,7 +21,7 @@ Proper CSV files can be converted back to BCSV/JMap files using:
 pyjmap tojmap [-le] [-jmapenc JMAP_ENCODING] [-csvenc CSV_ENCODING] {smg,dkjb,lm} CSV_FILE_PATH JMAP_FILE_PATH
 ```
 
-If ``le`` is set, the data is expected to be stored using little-endian byte order. ``jmapenc`` specifies the encoding of strings in the JMap data and it defaults to ``shift_jisx0213``. ``csvenc`` is the encoding of the CSV file and it uses ``utf-8`` by default. The hash lookup table is specified by ``HASHTABLE``. Supported values are ``smg`` for *Super Mario Galaxy*, ``lm`` for *Luigi's Mansion* and ``dkjb`` for *Donkey Kong Jungle Beat*.
+If ``le`` is set, the data is expected to be stored using little-endian byte order. ``jmapenc`` specifies the encoding of strings in the JMap data and it defaults to ``shift_jisx0213``. ``csvenc`` is the encoding of the CSV file and it uses ``utf-8`` by default. The hash lookup table is specified by ``HASHTABLE``. Supported values are ``smg`` for *Super Mario Galaxy*, ``lm`` for *Luigi's Mansion*, ``sms`` for *Super Mario Sunshine* and ``dkjb`` for *Donkey Kong Jungle Beat*.
 
 ## Library usage
 The library provides various high-level operations to deal with JMap data. Below is some example code showing the fundamentals of *pyjmap*. Look at [jmap.py](pyjmap/jmap.py) for more information about the different methods.
@@ -30,9 +30,10 @@ The library provides various high-level operations to deal with JMap data. Below
 import pyjmap
 
 # A hash lookup table is required to retrieve the proper names for hashed fields:
-hashtbl_smg = pyjmap.SuperMarioGalaxyHashTable()  # Lookup table for Super Mario Galaxy 1/2
-hashtbl_lm = pyjmap.LuigisMansionHashTable()      # Lookup table for Luigi's Mansion
-hashtbl_dkjb = pyjmap.JungleBeatHashTable()       # Lookup table for Donkey Kong Jungle Beat
+hashtbl_smg = pyjmap.SuperMarioGalaxyHashTable()    # Lookup table for Super Mario Galaxy 1/2
+hashtbl_sms = pyjmap.SuperMarioSunshineHashTable()  # Lookup table for Super Mario Sunshine
+hashtbl_lm = pyjmap.LuigisMansionHashTable()        # Lookup table for Luigi's Mansion
+hashtbl_dkjb = pyjmap.JungleBeatHashTable()         # Lookup table for Donkey Kong Jungle Beat
 
 # Create JMapInfo data from files and print number of entries
 info = pyjmap.from_file(hashtbl_smg, "GalaxySortIndexTable.bcsv", big_endian=True)  # Big-endian is True by default

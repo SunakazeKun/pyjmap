@@ -9,14 +9,15 @@ Luma's Workshop wiki: https://luma.aurumsmods.com/wiki/BCSV_(File_format)
 
 Different games use different hash algorithms, string encodings and endianness:
 
-Game                         Hash Algorithm  Endianness  Encoding
-------------------------------------------------------------------------
-Luigi's Mansion (GameCube)   Old             big         shift_jisx0213
-Luigi's Mansion (3DS)        Old             little      utf-8(?)
-Donkey Kong Jungle Beat      New (JGadget)   big         shift_jisx0213
-Super Mario Galaxy (Wii)     New (JGadget)   big         shift_jisx0213
-Super Mario Galaxy (Switch)  New (JGadget)   little      utf-8
-Super Mario Galaxy 2         New (JGadget)   big         shift_jisx0213
+Game                            Hash Algorithm  Endianness  Encoding
+--------------------------------------------------------------------------
+Luigi's Mansion (GameCube)      Old             big         shift_jisx0213
+Luigi's Mansion (3DS)           Old             little      utf-8(?)
+Super Mario Sunshine            Old             big         shift_jisx0213
+Donkey Kong Jungle Beat         New (JGadget)   big         shift_jisx0213
+Super Mario Galaxy (Wii)        New (JGadget)   big         shift_jisx0213
+Super Mario Galaxy (Switch)     New (JGadget)   little      utf-8
+Super Mario Galaxy 2            New (JGadget)   big         shift_jisx0213
 """
 
 import csv
@@ -27,8 +28,8 @@ import warnings
 
 __all__ = [
     "JMapException", "calc_old_hash", "calc_jgadget_hash", "JMapHashTable", "SuperMarioGalaxyHashTable",
-    "LuigisMansionHashTable", "JungleBeatHashTable", "JMapFieldType", "JMapField", "JMapEntry", "JMapInfo",
-    "from_buffer", "pack_buffer", "from_file", "write_file", "from_csv", "dump_csv"
+    "JungleBeatHashTable", "SuperMarioSunshineHashTable", "LuigisMansionHashTable", "JMapFieldType", "JMapField",
+    "JMapEntry", "JMapInfo", "from_buffer", "pack_buffer", "from_file", "write_file", "from_csv", "dump_csv"
 ]
 
 
@@ -163,6 +164,14 @@ class JungleBeatHashTable(JMapHashTable):
     def __init__(self):
         """Constructs a new hash lookup table using the known field names from Donkey Kong Jungle Beat."""
         super().__init__(calc_jgadget_hash, os.path.join(os.path.dirname(__file__), "lookup_donkeykongjunglebeat.txt"))
+
+
+class SuperMarioSunshineHashTable(JMapHashTable):
+    """A hash table implementation for Super Mario Sunshine."""
+
+    def __init__(self):
+        """Constructs a new hash lookup table using the known field names from Super Mario Sunshine."""
+        super().__init__(calc_old_hash, os.path.join(os.path.dirname(__file__), "lookup_supermariosunshine.txt"))
 
 
 class LuigisMansionHashTable(JMapHashTable):
@@ -691,7 +700,10 @@ class JMapInfo:
 
                 # Read string
                 elif field_type == JMapFieldType.STRING:
-                    val = data[off_val:off_val + 32].decode(encoding).rstrip("\0")
+                    # Read 32 bytes maximum
+                    end = data.index(0x00, off_val, off_val + 32)
+                    end = 32 if end < 0 else end
+                    val = data[off_val:end].decode(encoding)
 
                 # Read float
                 elif field_type == JMapFieldType.FLOAT:
