@@ -20,17 +20,17 @@ Super Mario Galaxy (Switch)     New (JGadget)   little      utf-8
 Super Mario Galaxy 2            New (JGadget)   big         shift_jisx0213
 """
 
-import csv
-import enum
-import os
-import struct
-import warnings
-
 __all__ = [
     "JMapException", "calc_old_hash", "calc_jgadget_hash", "JMapHashTable", "SuperMarioGalaxyHashTable",
     "JungleBeatHashTable", "SuperMarioSunshineHashTable", "LuigisMansionHashTable", "JMapFieldType", "JMapField",
     "JMapEntry", "JMapInfo", "from_buffer", "pack_buffer", "from_file", "write_file", "from_csv", "dump_csv"
 ]
+
+import csv
+import enum
+import os
+import struct
+import warnings
 
 
 # ----------------------------------------------------------------------------------------------------------------------
