@@ -16,18 +16,12 @@
 # C4F73392	Stage/jmp/Placement/Common/ChangeObjInfo
 # 9BA65420	fileselectscenario/scenariodata.bcsv
 # 9BA5D1A0	fileselectscenario/scenariodata.bcsv
-# DCD5B777	Battan/ActorInfo/ActionFlagCtrl.bcsv
 # BDE1379B	Battan/ActorInfo/ActionFlagCtrl.bcsv
-# 2CA5006F	Battan/ActorInfo/ActionFlagCtrl.bcsv
-# 2CA4FF81	Battan/ActorInfo/ActionFlagCtrl.bcsv
 # 4B53CFCB	Battan/ActorInfo/ActionFlagCtrl.bcsv
 # 4B53CEDD	Battan/ActorInfo/ActionFlagCtrl.bcsv
 # DCE271F4	BigSignBoard/ActorInfo/ActionFlagCtrl.bcsv
 # 9AA5EF52	BigSignBoard/ActorInfo/ActionFlagCtrl.bcsv
 # 9AA5EE64	BigSignBoard/ActorInfo/ActionFlagCtrl.bcsv
-# FBA7C622	BossBussun/ActorInfo/ActionFlagCtrl.bcsv
-# D1702B64	BossBussun/ActorInfo/ActionFlagCtrl.bcsv
-# D1702A76	BossBussun/ActorInfo/ActionFlagCtrl.bcsv
 # 1439D35C	StageSelectMenu.tbl layers?
 # 6DC3A6D2	StageSelectMenu.tbl
 ### General names
@@ -186,6 +180,9 @@ EndFrame
 EndLocalDirX
 EndLocalDirY
 EndLocalDirZ
+EnergyLv0
+EnergyLv1
+EnergyLv2
 EnvColor
 ErrorCheck
 EventNo
@@ -224,6 +221,36 @@ Gravity
 Gravity_type
 GroupId
 GroupName
+GuardAppearNumLv0
+GuardAppearNumLv1
+GuardAppearNumLv2
+GuardOffsetLv0
+GuardOffsetLv1
+GuardOffsetLv2
+GuardPosLv1Id0X
+GuardPosLv1Id0Y
+GuardPosLv1Id0Z
+GuardPosLv1Id1X
+GuardPosLv1Id1Y
+GuardPosLv1Id1Z
+GuardPosLv2Id0X
+GuardPosLv2Id0Y
+GuardPosLv2Id0Z
+GuardPosLv2Id1X
+GuardPosLv2Id1Y
+GuardPosLv2Id1Z
+GuardPosLv2Id2X
+GuardPosLv2Id2Y
+GuardPosLv2Id2Z
+GuardPosLv2Id3X
+GuardPosLv2Id3Y
+GuardPosLv2Id3Z
+GuardWaitLv1Id0
+GuardWaitLv1Id1
+GuardWaitLv2Id0
+GuardWaitLv2Id1
+GuardWaitLv2Id2
+GuardWaitLv2Id3
 HandyRush
 HideFlyMeter
 HighA
@@ -265,6 +292,7 @@ JointName
 JumpRush
 LandEffect
 LayerNo
+LevelNum
 Life
 LightAffectValue
 LightID
@@ -318,10 +346,10 @@ Obj_arg4
 Obj_arg5
 Obj_arg6
 Obj_arg7
-OffsetY0
-OffsetY1
 OffsetX
 OffsetY
+OffsetY0
+OffsetY1
 OffsetZ
 OpenCondition0
 OpenCondition1
@@ -439,6 +467,9 @@ Priority
 PrmColor
 PushOff
 Radius
+RailIDLv0
+RailIDLv1
+RailIDLv2
 Range
 RateValue
 ReactionName
@@ -499,6 +530,9 @@ SoundLabel
 SoundName
 SoundType
 Sound_code
+SpeedLv0
+SpeedLv1
+SpeedLv2
 SpinCatch
 SpiralRadius
 SpiralRot
@@ -1362,6 +1396,9 @@ SensorPlayerStepMin
 SensorPush
 SensorPushStepMax
 SensorPushStepMin
+SensorSearch
+SensorSearchStepMax
+SensorSearchStepMin
 SensorSearchArea
 SensorSearchAreaStepMax
 SensorSearchAreaStepMin
@@ -1404,6 +1441,9 @@ SensorStampLeftStepMin
 SensorStampRight
 SensorStampRightStepMax
 SensorStampRightStepMin
+SensorTurn
+SensorTurnStepMax
+SensorTurnStepMin
 SensorWeakPointBack
 SensorWeakPointBackStepMax
 SensorWeakPointBackStepMin
