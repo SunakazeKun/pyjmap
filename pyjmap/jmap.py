@@ -82,9 +82,9 @@ def calc_jgadget_hash(field_name: str) -> int:
 
 class JMapHashTable:
     """
-    A  hash lookup implementation for known field names. This stores a valid name string for a given hash. The actual
-    hashing algorithm differs between the games and needs to be specified first. A file that lists known field names can
-    be used to initialize the hash table.
+    A hash lookup table implementation for known field names. This stores a string for a given hash. The actual hashing
+    algorithm differs between the games and needs to be specified first. A file that lists known field names can be used
+    to initialize the hash table.
     """
 
     def __init__(self, hash_func, lookup_file_path):
@@ -93,8 +93,8 @@ class JMapHashTable:
         corresponds to a field that should be included. Lines that start with a '#' will be ignored and are treated as
         comments. This raises a FileNotFoundError if the lookup file does not exist.
 
-        :param hash_func: the hashing function to be used.
-        :param lookup_file_path: the file path containing the known field names.
+        :param hash_func: the hashing algorithm to be used.
+        :param lookup_file_path: the path to the file containing the known field names.
         :raises FileNotFoundError: when the lookup file cannot be found.
         """
         self._hash_func_ = hash_func
@@ -206,12 +206,12 @@ class JMapFieldType(enum.Enum):
 
     @property
     def size(self) -> int:
-        """The field data size in bytes."""
+        """The data size in bytes."""
         return self._size_
 
     @property
     def mask(self) -> int:
-        """The field data bitmask."""
+        """The data mask."""
         return self._mask_
 
     @property
@@ -226,7 +226,7 @@ class JMapFieldType(enum.Enum):
 
     @property
     def default(self):
-        """The default data type value."""
+        """The default value."""
         return self._default_
 
     LONG          =  4, 0xFFFFFFFF,  2, int, 0
@@ -243,9 +243,9 @@ class JMapFieldType(enum.Enum):
 # ----------------------------------------------------------------------------------------------------------------------
 class JMapField:
     """
-    A field (or column) of a JMapInfo container. This specifies the name, hash, data type, mask and shift amount for an
-    individual field. Actual fields should be created by the JMapInfo instance itself. All entries in a JMapInfo should
-    contain data for every field in the container.
+    Represents the information for a field (or column) of a JMapInfo container. This specifies the name, hash, type,
+    mask, shift amount and offset for an individual field. Actual fields should be created by the JMapInfo instance
+    itself. All entries in a JMapInfo should contain data for every field in the container.
     """
 
     # Structures for parsing and packing
@@ -253,25 +253,26 @@ class JMapField:
     __STRUCT_LE__ = struct.Struct("<2IH2b")  # Little-endian
 
     def __init__(self, jmap, field_hash: int = 0, field_type: JMapFieldType = None,
-                 mask: int = 0xFFFFFFFF, shift_amount: int = 0, defval=None):
+                 mask: int = 0xFFFFFFFF, shift_amount: int = 0, offset: int = 0, defval=None):
         """
         Low-level constructor for a new JMapField. The given JMapInfo container will be assigned to the field. This
         should not be called directly. Instead, use JMapInfo's methods for creating new fields.
 
-        :param jmap: The JMapInfo container that this field belongs to.
-        :param field_hash: The field's hash.
-        :param field_type: The data type of this field.
-        :param mask: The bitmask.
-        :param shift_amount: The amount of bits to be shifted.
-        :param defval: The default value for the field.
+        :param jmap: the JMapInfo container that this field belongs to.
+        :param field_hash: the field's hash.
+        :param field_type: the data type of this field.
+        :param mask: the bitmask.
+        :param shift_amount: the amount of bits to be shifted.
+        :param offset: the data offset into an entry.
+        :param defval: the default value for the field.
         """
         self._jmap_ = jmap
         self._hash_ = field_hash
         self._type_ = field_type
-        self._mask_ = mask
-        self._shift_ = shift_amount
+        self.mask = mask
+        self.shift = shift_amount
         self._default_ = defval
-        self._offset_ = 0
+        self._offset_ = offset
 
     @property
     def jmap(self):
@@ -294,14 +295,14 @@ class JMapField:
         return self._type_
 
     @property
-    def mask(self) -> int:
-        """The field's bitmask."""
-        return self._mask_
+    def offset(self) -> int:
+        """The field's offset. -1 indicates that the container will calculate the offset automatically."""
+        return self._offset_ if self._jmap_.manual_offsets else -1
 
-    @property
-    def shift(self) -> int:
-        """The field's shift amount."""
-        return self._shift_
+    @offset.setter
+    def offset(self, val: int):
+        """Sets the field's offset. Should always be specified for containers with manually assigned field offsets."""
+        self._offset_ = val
 
     @property
     def default(self):
@@ -309,20 +310,11 @@ class JMapField:
         return self._default_
 
     def __repr__(self):
-        """Implements "repr(`self`)"."""
         return self._jmap_.hashtable.find(self._hash_)
 
     def _unpack_(self, data, off: int, is_big_endian: bool):
-        """
-        Unpacks the field's information from the specified buffer as defined in the BCSV specifications.
-
-        :param data: the buffer.
-        :param off: the offset into the buffer.
-        :param is_big_endian: the endianness of the data.
-        :raises JMapException: when an invalid field type is detected.
-        """
         strct = self.__STRUCT_BE__ if is_big_endian else self.__STRUCT_LE__
-        self._hash_, self._mask_, self._offset_, self._shift_, raw_type = strct.unpack_from(data, off)
+        self._hash_, self.mask, self._offset_, self.shift, raw_type = strct.unpack_from(data, off)
 
         if raw_type < 0 or raw_type >= 7:  # Invalid or unknown type
             raise JMapException(f"Invalid JMap field type with ID 0x{raw_type:02X} found!")
@@ -331,22 +323,14 @@ class JMapField:
         self._default_ = self._type_.default
 
     def _pack_(self, data, off: int, is_big_endian: bool):
-        """
-        Packs the field's information into the specified buffer as defined in the BCSV specifications.
-
-        :param data: the buffer.
-        :param off: the offset into the buffer.
-        :param is_big_endian: the endianness of the data.
-        """
         strct = self.__STRUCT_BE__ if is_big_endian else self.__STRUCT_LE__
-        strct.pack_into(data, off, self._hash_, self._mask_, self._offset_, self._shift_, self._type_.value)
+        strct.pack_into(data, off, self._hash_, self.mask, self._offset_, self.shift, self._type_.value)
 
 
 class JMapEntry:
     """
-    An entry (or row) of a JMapInfo container. This holds the actual data. Every entry should contain data for all the
-    fields in a JMap container. The data is stored as hash-value pairs. However, data can be accessed using the field
-    hash or name.
+    An entry (or row) of a JMapInfo container that holds the actual data. Every entry should contain data for all fields
+    in a JMap container. The data is stored as hash-value pairs. Data can be accessed using the field hash or name.
     """
 
     def __init__(self, jmap):
@@ -369,7 +353,6 @@ class JMapEntry:
         return self._data_.items()
 
     def __repr__(self):
-        """Implements "repr(`self`)"."""
         string = "{"
         first = True
 
@@ -383,11 +366,9 @@ class JMapEntry:
         return string + "}"
 
     def __len__(self):
-        """Implements "len(`self`)"."""
         return len(self._data_)
 
     def __getitem__(self, field_key):
-        """Implements "`self`[`field_key`]"."""
         if isinstance(field_key, str):
             field_hash = self._jmap_.hashtable.calc(field_key)
 
@@ -404,7 +385,6 @@ class JMapEntry:
             raise TypeError("Key must be a str or int!")
 
     def __setitem__(self, field_key, value):
-        """Implements "`self`[`field_key`] = `value`"."""
         if isinstance(field_key, str):
             field_hash = self._jmap_.hashtable.calc(field_key)
 
@@ -425,7 +405,6 @@ class JMapEntry:
             raise TypeError("Key must be a str or int!")
 
     def __contains__(self, field_key):
-        """Implements "`field_key` in `self`"."""
         if isinstance(field_key, str):
             return self._jmap_.hashtable.calc(field_key) in self._data_
         elif isinstance(field_key, int):
@@ -446,23 +425,34 @@ class JMapInfo:
     # Structures for parsing and packing
     __STRUCT_BE__ = struct.Struct(">4I")  # Big-endian
     __STRUCT_LE__ = struct.Struct("<4I")  # Little-endian
+    __U16_BE__ = struct.Struct(">H")
+    __U16_LE__ = struct.Struct("<H")
+    __U32_BE__ = struct.Struct(">I")
+    __U32_LE__ = struct.Struct("<I")
+    __F32_BE__ = struct.Struct(">F")
+    __F32_LE__ = struct.Struct("<F")
 
-    def __init__(self, hashtable: JMapHashTable):
+    def __init__(self, hash_table: JMapHashTable):
         """
         Constructs a new JMapInfo container with no fields or entries. The specified lookup hash table will be used to
         retrieve proper names for hashes.
 
-        :param hashtable: the hash lookup table to be used.
+        :param hash_table: the hash lookup table to be used.
         """
-        self._fields_ = dict()        # hash-field pairs that describe the contents of an entry.
-        self._entries_ = list()       # List of actual entries.
-        self._hashtable_ = hashtable  # The lookup hashtable that is used to retrieve proper field names.
-        self._entry_size_ = -1        # Size of a single entry. Negative value forces recalculation of total size.
+        self._fields_ = dict()          # Maps fields to hashes for quick access.
+        self._entries_ = list()         # List of actual entries.
+        self._hash_table_ = hash_table  # The lookup hash table that is used to retrieve proper field names.
+        self._entry_size_ = -1          # Size of a single entry.
+        self.manual_offsets = False     # Requires manually-specified field offsets. Necessary for PA collision data.
 
     @property
-    def hashtable(self):
-        """Returns the hash lookup table used by this container."""
-        return self._hashtable_
+    def hash_table(self):
+        """
+        Returns the hash lookup table used by this container.
+
+        :return: the hash lookup table.
+        """
+        return self._hash_table_
 
     @property
     def fields(self) -> tuple:
@@ -474,27 +464,21 @@ class JMapInfo:
         return tuple(self._fields_.values())
 
     def __iter__(self):
-        """Implements "iter(`self`)"."""
         return iter(self._entries_)
 
     def __reversed__(self):
-        """Implements "reversed(`self`)"."""
         return reversed(self._entries_)
 
     def __repr__(self):
-        """Implements "repr(`self`)"."""
         return repr(self._entries_)
 
     def __len__(self):
-        """Implements "len(`self`)"."""
         return len(self._entries_)
 
     def __getitem__(self, key):
-        """Implements "`self`[`key`]"."""
         return self._entries_[key]
 
     def __delitem__(self, key):
-        """Implements "del `self`[`key`]"."""
         if isinstance(key, slice):
             for i in reversed(range(*key.indices(len(self._entries_)))):
                 self._entries_[i]._jmap_ = None
@@ -504,9 +488,8 @@ class JMapInfo:
             del self._entries_[key]
 
     def __contains__(self, field_key):
-        """Implements "`field_key` in `self`"."""
         if isinstance(field_key, str):
-            return self._hashtable_.calc(field_key) in self._fields_
+            return self._hash_table_.calc(field_key) in self._fields_
         elif isinstance(field_key, int):
             return field_key in self._fields_
         else:
@@ -520,7 +503,7 @@ class JMapInfo:
         :return: the field that corresponds to the key.
         """
         if isinstance(field_key, str):
-            field_hash = self._hashtable_.calc(field_key)
+            field_hash = self._hash_table_.calc(field_key)
 
             if field_hash not in self._fields_:
                 raise KeyError(f"Entry does not contain the field \"{field_key}\"")
@@ -534,34 +517,33 @@ class JMapInfo:
         else:
             raise TypeError("Key must be a str or int!")
 
-    def create_field(self, field_name, field_type: JMapFieldType, defval, mask: int = -1, shift_amount: int = 0):
+    def create_field(self, field_name, field_type: JMapFieldType, defval, mask: int = -1, shift_amount: int = 0, offset: int = 0):
         """
         Creates a new field with the given name, type, mask and shift amount. This also sets the field's data to the
-        default value for every entry. If a field with the same hash already exists, a JMapException will be raised.
+        default value for every entry. If a field with the same hash already exists, a JMapException will be raised. The
+        field's offset should only be provided when the JMapInfo container uses manually-specified field offsets.
 
         :param field_name: the new field's name.
         :param field_type: the new field's data type.
         :param defval: the new field's default value.
         :param mask: the new field's bitmask. If negative, the field type's default mask will be used.
         :param shift_amount: the new field's shift amount.
+        :param offset: the field's offset.
         :raises JMapException: if a field with the same hash already exists.
         """
         if not isinstance(defval, field_type.data_type):
             raise TypeError(f"Default value type {repr(type(defval))} is not expected type {repr(field_type.data_type)}!")
 
         # Calculate hash and check if field with same hash already exists
-        field_hash = self._hashtable_.add(field_name)
+        field_hash = self._hash_table_.add(field_name)
 
         if field_hash in self._fields_:
             raise JMapException(f"Field \"{field_name}\" already exists!")
 
         # Create the actual field
         mask = field_type.mask if mask < 0 else mask
-        field = JMapField(self, field_hash, field_type, mask, shift_amount, defval)
-
-        # Add the new field and force recalculation of entry size
+        field = JMapField(self, field_hash, field_type, mask, shift_amount, offset, defval)
         self._fields_[field_hash] = field
-        self._entry_size_ = -1
 
         # Set default values for all entries
         for entry in self._entries_:
@@ -569,7 +551,7 @@ class JMapInfo:
 
     def drop_field(self, field_key):
         """
-        Drops the field (column) with the specified key (hash or name) and remove's the field's data from all entries.
+        Drops the field with the specified key (hash or name) and remove's the field's data from all entries.
 
         :param field_key: the field's key (hash or name).
         """
@@ -578,12 +560,11 @@ class JMapInfo:
             field._jmap_ = None  # Unlink
             del self._fields_[field_hash]
 
-            self._entry_size_ = -1
             for entry in self._entries_:
                 del entry._data_[field_hash]
 
         if isinstance(field_key, str):
-            field_hash = self._hashtable_.calc(field_key)
+            field_hash = self._hash_table_.calc(field_key)
 
             if field_hash not in self._fields_:
                 raise KeyError(f"Field \"{field_key}\" does not exist!")
@@ -641,7 +622,7 @@ class JMapInfo:
         self._entries_.sort(key=key, reverse=reverse)
 
     def copy(self):
-        clone = JMapInfo(self._hashtable_)
+        clone = JMapInfo(self._hash_table_)
         clone._entry_size_ = self._entry_size_
 
         for field_hash, field in self._fields_.items():
@@ -659,14 +640,6 @@ class JMapInfo:
     __deepcopy__ = copy
 
     def _unpack_(self, data, off: int, is_big_endian: bool, encoding: str):
-        """
-        Unpacking the content from the specified buffer. The data is expected to be stored in the BCSV format.
-
-        :param data: the byte buffer.
-        :param off: the offset into the buffer.
-        :param is_big_endian: the endianness of the data.
-        :param encoding: the encoding for strings.
-        """
         # Unpack header and calculate string pool offset
         strct = self.__STRUCT_BE__ if is_big_endian else self.__STRUCT_LE__
         num_entries, num_fields, off_data, self._entry_size_ = strct.unpack_from(data, off)
@@ -683,7 +656,10 @@ class JMapInfo:
 
         # Unpack entries
         off_tmp = off + off_data
-        endian = ">" if is_big_endian else "<"
+
+        strct_u16 = self.__U16_BE__ if is_big_endian else self.__U16_LE__
+        strct_u32 = self.__U32_BE__ if is_big_endian else self.__U32_LE__
+        strct_f32 = self.__F32_BE__ if is_big_endian else self.__F32_LE__
 
         for i in range(num_entries):
             entry = JMapEntry(self)
@@ -695,7 +671,7 @@ class JMapInfo:
 
                 # Read long
                 if field_type == JMapFieldType.LONG or field_type == JMapFieldType.LONG_2:
-                    val = (struct.unpack_from(endian + "I", data, off_val)[0] & field.mask) >> field.shift
+                    val = (strct_u32.unpack_from(data, off_val)[0] & field.mask) >> field.shift
                     val |= ~0xFFFFFFFF if val & 0x80000000 else 0
 
                 # Read string
@@ -707,11 +683,11 @@ class JMapInfo:
 
                 # Read float
                 elif field_type == JMapFieldType.FLOAT:
-                    val = struct.unpack_from(endian + "f", data, off_val)[0]
+                    val = strct_f32.unpack_from(data, off_val)[0]
 
                 # Read short
                 elif field_type == JMapFieldType.SHORT:
-                    val = (struct.unpack_from(endian + "H", data, off_val)[0] & field.mask) >> field.shift
+                    val = (strct_u16.unpack_from(data, off_val)[0] & field.mask) >> field.shift
                     val |= ~0xFFFF if val & 0x8000 else 0
 
                 # Read char
@@ -721,7 +697,7 @@ class JMapInfo:
 
                 # Read string at offset
                 elif field_type == JMapFieldType.STRING_OFFSET:
-                    off_val = off_strings + struct.unpack_from(endian + "I", data, off_val)[0]
+                    off_val = off_strings + strct_u32.unpack_from(data, off_val)[0]
                     end_str = off_val
 
                     while data[end_str]:
@@ -748,15 +724,21 @@ class JMapInfo:
         off_data = 0x10 + num_fields * 0xC
 
         # Calculate entry size and field offsets
-        if self._entry_size_ < 0:
-            len_data_entry = 0
+        len_data_entry = 0
 
+        if self.manual_offsets:
+            for field in self._fields_.values():
+                potential_len = field.offset + field.type.size
+
+                if potential_len > len_data_entry:
+                    len_data_entry = potential_len
+        else:
             for field in sorted(self._fields_.values(), key=lambda k: k.type.order):
                 field._offset_ = len_data_entry
                 len_data_entry += field.type.size
 
-            # Align total entry size to 4 bytes
-            self._entry_size_ = len_data_entry + 3 & ~3
+        # Align total entry size to 4 bytes
+        self._entry_size_ = len_data_entry + 3 & ~3
 
         # Prepare output buffer and write header
         buffer = bytearray(off_data + num_entries * self._entry_size_)
@@ -773,7 +755,10 @@ class JMapInfo:
         # Pack entries and prepare the string pool
         off_strings = len(buffer)
         string_offsets = dict()
-        endian = ">" if is_big_endian else "<"
+
+        strct_u16 = self.__U16_BE__ if is_big_endian else self.__U16_LE__
+        strct_u32 = self.__U32_BE__ if is_big_endian else self.__U32_LE__
+        strct_f32 = self.__F32_BE__ if is_big_endian else self.__F32_LE__
 
         for entry in self._entries_:
             for field in self._fields_.values():
@@ -783,23 +768,27 @@ class JMapInfo:
 
                 # Pack long
                 if field_type == JMapFieldType.LONG or field_type == JMapFieldType.LONG_2:
-                    struct.pack_into(endian + "I", buffer, off_val, (val << field.shift) & field.mask)
+                    prev = strct_u32.unpack_from(buffer, off_val)[0] & ~field.mask
+                    val = ((val << field.shift) & field.mask) | prev
+                    strct_u32.pack_into(buffer, off_val, val)
 
                 # Pack string
                 elif field_type == JMapFieldType.STRING:
                     enc_string = val.encode(encoding)
                     if len(enc_string) >= 32:
                         warnings.warn("String is too long to be embedded. String will be chopped to fit 32 bytes!")
-                    len_string = min(len(enc_string), 31)  # Last byte is for null-terminator
+                    len_string = min(len(enc_string), 32)
                     buffer[off_val:off_val + len_string] = enc_string[:len_string]
 
                 # Pack float
                 elif field_type == JMapFieldType.FLOAT:
-                    struct.pack_into(endian + "f", buffer, off_val, val)
+                    strct_f32.pack_into(buffer, off_val, val)
 
                 # Pack short
                 elif field_type == JMapFieldType.SHORT:
-                    struct.pack_into(endian + "H", buffer, off_val, (val << field.shift) & field.mask)
+                    prev = strct_u16.unpack_from(buffer, off_val)[0] & ~field.mask
+                    val = ((val << field.shift) & field.mask) | prev
+                    strct_u16.pack_into(buffer, off_val, val)
 
                 # Pack char
                 elif field_type == JMapFieldType.CHAR:
@@ -814,7 +803,7 @@ class JMapInfo:
                         string_offsets[val] = off_string
                         buffer += (val + "\0").encode(encoding)
 
-                    struct.pack_into(endian + "I", buffer, off_val, off_string)
+                    strct_u32.pack_into(buffer, off_val, off_string)
 
             off_tmp += self._entry_size_
 
@@ -971,8 +960,10 @@ def from_csv(hashtable: JMapHashTable, file_path: str, encoding: str = "utf-8") 
             jmap._entries_.append(entry)
 
             for i, field in enumerate(jmap._fields_.values()):
-                val = field.default if len(entry_row[i]) == 0 else __CSV_FIELD_PRIMARIES__[field.type.value](entry_row[i])
-                entry._data_[field.hash] = val
+                if len(entry_row[i] == 0):
+                    entry._data_[field.hash] = field.default
+                else:
+                    entry._data_[field.hash] = __CSV_FIELD_PRIMARIES__[field.type.value](entry_row[i])
 
     return jmap
 
@@ -987,17 +978,17 @@ def dump_csv(jmap: JMapInfo, file_path: str, encoding: str = "utf-8"):
     :param encoding: the CSV file's encoding, expects utf-8 by default.
     """
     with open(file_path, "w", encoding=encoding, newline="") as f:
-        csvwriter = csv.writer(f, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        csv_writer = csv.writer(f, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
         # Write fields header
         field_descs = [
             f"{field.name}:{__CSV_FIELD_TYPES__[field.type.value]}:{__CSV_FIELD_DEFAULTS__[field.type.value]}"
             for field in jmap._fields_.values()
         ]
-        csvwriter.writerow(field_descs)
+        csv_writer.writerow(field_descs)
 
         # Write entries
         for entry in jmap:
-            csvwriter.writerow([str(entry[field.hash]) for field in jmap._fields_.values()])
+            csv_writer.writerow([str(entry[field.hash]) for field in jmap._fields_.values()])
 
         f.flush()

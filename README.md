@@ -64,12 +64,21 @@ print(field.type)             # >> JMapFieldType.STRING_OFFSET
 print("0x%08X" % field.mask)  # >> 0xFFFFFFFF
 print(field.shift)            # >> 0
 
+# Manually-specified offsets and bit-packed data
+collision_pa = pyjmap.JMapInfo(hashtbl_smg)
+collision_pa.manual_offsets = True
+collision_pa.create_field("camera_id", pyjmap.JMapFieldType.LONG, 0, mask=0x000000FF, shift_amount=0, offset=0)
+collision_pa.create_field("Sound_code", pyjmap.JMapFieldType.LONG, 0, mask=0x00007F00, shift_amount=8, offset=0)
+collision_pa.create_field("Floor_code", pyjmap.JMapFieldType.LONG, 0, mask=0x001F8000, shift_amount=15, offset=0)
+collision_pa.create_field("Wall_code", pyjmap.JMapFieldType.LONG, 0, mask=0x01E00000, shift_amount=21, offset=0)
+collision_pa.create_field("Camera_through", pyjmap.JMapFieldType.LONG, 0, mask=0x02000000, shift_amount=25, offset=0)
+
 # Creating an exact copy of the data
 copied = info.copy()
 
 # The following creates a new field called CometMedalNum which uses the LONG data type. The field's default value
 # that is applied to all fields is -1. The optional bitmask and shift amount are 0xFFFFFFFF and 0, respectively.
-copied.create_field("CometMedalNum", JMapFieldType.LONG, -1, mask=0xFFFFFFFF, shift_amount=0)
+copied.create_field("CometMedalNum", pyjmap.JMapFieldType.LONG, -1, mask=0xFFFFFFFF, shift_amount=0)
 
 # This removes the field OpenCondition2 and its data in all entries.
 copied.drop_field("OpenCondition2")
