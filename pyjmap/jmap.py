@@ -282,7 +282,7 @@ class JMapField:
     @property
     def name(self) -> str:
         """The field's name."""
-        return self._jmap_.hashtable.find(self._hash_)
+        return self._jmap_.hash_table.find(self._hash_)
 
     @property
     def hash(self) -> int:
@@ -310,7 +310,7 @@ class JMapField:
         return self._default_
 
     def __repr__(self):
-        return self._jmap_.hashtable.find(self._hash_)
+        return self._jmap_.hash_table.find(self._hash_)
 
     def _unpack_(self, data, off: int, is_big_endian: bool):
         strct = self.__STRUCT_BE__ if is_big_endian else self.__STRUCT_LE__
@@ -361,7 +361,7 @@ class JMapEntry:
                 string += ", "
             else:
                 first = False
-            string += repr(self._jmap_.hashtable.find(field_hash)) + ": " + repr(value)
+            string += repr(self._jmap_.hash_table.find(field_hash)) + ": " + repr(value)
 
         return string + "}"
 
@@ -370,7 +370,7 @@ class JMapEntry:
 
     def __getitem__(self, field_key):
         if isinstance(field_key, str):
-            field_hash = self._jmap_.hashtable.calc(field_key)
+            field_hash = self._jmap_.hash_table.calc(field_key)
 
             if field_hash not in self._data_:
                 raise KeyError(f"Entry does not contain the field \"{field_key}\"")
@@ -406,7 +406,7 @@ class JMapEntry:
 
     def __contains__(self, field_key):
         if isinstance(field_key, str):
-            return self._jmap_.hashtable.calc(field_key) in self._data_
+            return self._jmap_.hash_table.calc(field_key) in self._data_
         elif isinstance(field_key, int):
             return field_key in self._data_
         else:
