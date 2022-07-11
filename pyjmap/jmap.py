@@ -429,8 +429,8 @@ class JMapInfo:
     __U16_LE__ = struct.Struct("<H")
     __U32_BE__ = struct.Struct(">I")
     __U32_LE__ = struct.Struct("<I")
-    __F32_BE__ = struct.Struct(">F")
-    __F32_LE__ = struct.Struct("<F")
+    __F32_BE__ = struct.Struct(">f")
+    __F32_LE__ = struct.Struct("<f")
 
     def __init__(self, hash_table: JMapHashTable):
         """
