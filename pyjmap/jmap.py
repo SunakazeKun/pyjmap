@@ -386,7 +386,7 @@ class JMapEntry:
 
     def __setitem__(self, field_key, value):
         if isinstance(field_key, str):
-            field_hash = self._jmap_.hashtable.calc(field_key)
+            field_hash = self._jmap_.hash_table.calc(field_key)
 
             if field_hash not in self._data_:
                 raise KeyError(f"Entry does not contain the field \"{field_key}\"")
