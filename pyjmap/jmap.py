@@ -960,7 +960,7 @@ def from_csv(hashtable: JMapHashTable, file_path: str, encoding: str = "utf-8") 
             jmap._entries_.append(entry)
 
             for i, field in enumerate(jmap._fields_.values()):
-                if len(entry_row[i] == 0):
+                if len(entry_row[i]) == 0:
                     entry._data_[field.hash] = field.default
                 else:
                     entry._data_[field.hash] = __CSV_FIELD_PRIMARIES__[field.type.value](entry_row[i])
