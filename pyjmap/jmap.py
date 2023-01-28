@@ -232,7 +232,7 @@ class JMapFieldType(enum.Enum):
     LONG          =  4, 0xFFFFFFFF,  2, int, 0
     STRING        = 32, 0x00000000,  0, str, ""
     FLOAT         =  4, 0xFFFFFFFF,  1, float, 0.0
-    LONG_2        =  4, 0xFFFFFFFF,  3, int, 0
+    UNSIGNED_LONG =  4, 0xFFFFFFFF,  3, int, 0
     SHORT         =  2, 0x0000FFFF,  4, int, 0
     CHAR          =  1, 0x000000FF,  5, int, 0
     STRING_OFFSET =  4, 0xFFFFFFFF,  6, str, ""
@@ -670,7 +670,7 @@ class JMapInfo:
                 val = None
 
                 # Read long
-                if field_type == JMapFieldType.LONG or field_type == JMapFieldType.LONG_2:
+                if field_type == JMapFieldType.LONG or field_type == JMapFieldType.UNSIGNED_LONG:
                     val = (strct_u32.unpack_from(data, off_val)[0] & field.mask) >> field.shift
                     val |= ~0xFFFFFFFF if val & 0x80000000 else 0
 
@@ -767,7 +767,7 @@ class JMapInfo:
                 val = entry._data_[field.hash]
 
                 # Pack long
-                if field_type == JMapFieldType.LONG or field_type == JMapFieldType.LONG_2:
+                if field_type == JMapFieldType.LONG or field_type == JMapFieldType.UNSIGNED_LONG:
                     prev = strct_u32.unpack_from(buffer, off_val)[0] & ~field.mask
                     val = ((val << field.shift) & field.mask) | prev
                     strct_u32.pack_into(buffer, off_val, val)
@@ -880,7 +880,7 @@ def write_file(jmap: JMapInfo, file_path: str, big_endian: bool = True, encoding
         f.flush()
 
 
-__CSV_FIELD_TYPES__ = ["Int", "EmbeddedString", "Float", "Int2", "Short", "Char", "String"]
+__CSV_FIELD_TYPES__ = ["Int", "EmbeddedString", "Float", "UnsignedInt", "Short", "Char", "String"]
 __CSV_FIELD_DEFAULTS__ = ["0", "0", "0.0", "0", "0", "0", "0"]
 __CSV_FIELD_PRIMARIES__ = [int, str, float, int, int, int, str]
 
@@ -930,8 +930,8 @@ def from_csv(hashtable: JMapHashTable, file_path: str, encoding: str = "utf-8") 
             elif field_type == "Float":
                 actual_type = JMapFieldType.FLOAT
                 actual_default = float(field_default)
-            elif field_type == "Int2":
-                actual_type = JMapFieldType.LONG_2
+            elif field_type == "UnsignedInt":
+                actual_type = JMapFieldType.UNSIGNED_LONG
                 actual_default = int(field_default)
             elif field_type == "Short":
                 actual_type = JMapFieldType.SHORT

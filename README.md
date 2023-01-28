@@ -118,13 +118,13 @@ The following field data types are supported:
 
 | Identifier | CSV type | Description |
 | - | - | - |
-| ``JMapFieldType.LONG`` | ``Int`` | 32-bit integer
-| ``JMapFieldType.LONG_2`` | ``Int2`` | 32-bit integer
-| ``JMapFieldType.SHORT`` | ``Short`` | 16-bit integer
-| ``JMapFieldType.CHAR`` | ``Char`` | 8-bit integer
-| ``JMapFieldType.FLOAT`` | ``Float`` | single-precission float
-| ``JMapFieldType.STRING`` | ``EmbeddedString`` | embedded SJIS string (occupies 31 bytes at max)
-| ``JMapFieldType.STRING_OFFSET`` | ``String`` | SJIS string (**not supported in Luigi's Mansion**)
+| ``JMapFieldType.LONG`` | ``Int`` | 32-bit integer |
+| ``JMapFieldType.UNSIGNED_LONG`` | ``UnsignedInt`` | 32-bit unsigned integer |
+| ``JMapFieldType.SHORT`` | ``Short`` | 16-bit integer |
+| ``JMapFieldType.CHAR`` | ``Char`` | 8-bit integer |
+| ``JMapFieldType.FLOAT`` | ``Float`` | single-precission float |
+| ``JMapFieldType.STRING`` | ``EmbeddedString`` | embedded SJIS string (occupies 31 bytes at max) |
+| ``JMapFieldType.STRING_OFFSET`` | ``String`` | SJIS string (**not supported in Luigi's Mansion**) |
 
 # CSV format
 The CSV format is based on the format of known source files that were left in the files of *Super Mario Galaxy 2*:
