@@ -801,7 +801,10 @@ class JMapInfo:
                     else:
                         off_string = len(buffer) - off_strings
                         string_offsets[val] = off_string
-                        buffer += (val + "\0").encode(encoding)
+
+                        # shift_jis appears to truncate the zero terminator sometimes...
+                        buffer += val.encode(encoding)
+                        buffer += "\0".encode(encoding)
 
                     strct_u32.pack_into(buffer, off_val, off_string)
 
