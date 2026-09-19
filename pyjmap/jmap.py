@@ -954,7 +954,7 @@ def from_csv(hashtable: JMapHashTable, file_path: str, encoding: str = "utf-8") 
             else:
                 field_hash = hashtable.add(field_name)
 
-            field = JMapField(jmap, field_hash, actual_type, actual_type.mask, 0, actual_default)
+            field = JMapField(jmap, field_hash, actual_type, mask=actual_type.mask, defval=actual_default)
             jmap._fields_[field.hash] = field
 
         # Create entries
